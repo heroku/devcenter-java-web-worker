@@ -14,11 +14,6 @@
         <!-- Required only if using Spring -->
         <dependency>
             <groupId>org.springframework.amqp</groupId>
-            <artifactId>spring-amqp</artifactId>
-            <version>1.0.0.RELEASE</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.amqp</groupId>
             <artifactId>spring-rabbit</artifactId>
             <version>1.0.0.RELEASE</version>
         </dependency>

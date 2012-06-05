@@ -1,2 +1,2 @@
-sender: sh target/bin/sender
-receiver: sh target/bin/receiver
+web: java $JAVA_OPTS_WEB -jar web/target/dependency/webapp-runner.jar --port $PORT web/target/*.war
+receiver: sh worker/target/bin/receiver

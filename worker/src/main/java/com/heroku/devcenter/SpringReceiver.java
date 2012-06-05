@@ -1,10 +1,10 @@
 package com.heroku.devcenter;
 
-import java.io.UnsupportedEncodingException;
-
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+import java.io.UnsupportedEncodingException;
 
 public class SpringReceiver {
 
@@ -13,6 +13,7 @@ public class SpringReceiver {
         RabbitTemplate rabbitTemplate = ctx.getBean(RabbitTemplate.class);
         while (true) {
         	System.out.println("Checking for message...");
+
         	Message response = rabbitTemplate.receive();
             if (response != null) {
                 System.out.println("Spring Recieved:->" + new String(response.getBody(), "UTF-8"));

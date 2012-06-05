@@ -1,13 +1,17 @@
 package com.heroku.devcenter;
 
-import java.io.UnsupportedEncodingException;
-
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
 
-public class SpringSender {
+import java.io.UnsupportedEncodingException;
+
+@Controller
+@RequestMapping("/pdf")
+public class RabbitController {
 
     public static void main(String[] args) throws UnsupportedEncodingException, InterruptedException {
         ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext("applicationContext.xml");

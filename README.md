@@ -83,7 +83,7 @@ Application context XML to configure the rabbit template:
 
         <bean id="cf" class="org.springframework.amqp.rabbit.connection.CachingConnectionFactory">
             <!-- This constructor arg utilizes the RabbitFactoryUtil class shown in the java example above -->
-            <constructor-arg><value>#{ T(com.heroku.devcenter.RabbitFactoryUtil).getConnectionFactory()}</value></constructor-arg>
+            <constructor-arg><value>#{ T(com.heroku.devcenter.RabbitFactory).getConnectionFactory()}</value></constructor-arg>
         </bean>
 
         <rabbit:queue id="sample-queue" durable="true" auto-delete="false" exclusive="false" name="sample-queue"/>

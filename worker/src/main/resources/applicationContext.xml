@@ -11,7 +11,7 @@
     <context:property-placeholder/>
 
     <bean id="cf" class="org.springframework.amqp.rabbit.connection.CachingConnectionFactory">
-        <constructor-arg><value>#{ T(com.heroku.devcenter.RabbitFactoryUtil).getConnectionFactory()}</value></constructor-arg>
+        <constructor-arg><value>#{ T(com.heroku.devcenter.RabbitFactory).getConnectionFactory()}</value></constructor-arg>
     </bean>
 
     <rabbit:queue id="sample-queue" durable="true" auto-delete="false" exclusive="false" name="sample-queue"/>

@@ -7,16 +7,21 @@ import java.io.Serializable;
  */
 public class BigOperation implements Serializable {
 
-    public static final String QUEUE_NAME = "myqueue";
-    
-    String name;
+    private String name;
 
-    public String getName() {
-        return name;
+    public BigOperation() {
+    }
+
+    public BigOperation(String name) {
+        this.name = name;
     }
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getName() {
+        return name;
     }
 
     @Override

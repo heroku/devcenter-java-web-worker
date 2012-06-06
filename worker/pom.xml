@@ -29,7 +29,7 @@
                     <assembleDirectory>target</assembleDirectory>
                     <programs>
                         <program>
-                            <mainClass>com.heroku.devcenter.SpringReceiver</mainClass>
+                            <mainClass>com.heroku.devcenter.RabbitReceiver</mainClass>
                             <name>receiver</name>
                         </program>
                     </programs>

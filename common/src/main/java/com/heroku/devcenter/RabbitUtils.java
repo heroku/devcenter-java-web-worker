@@ -1,13 +1,23 @@
 package com.heroku.devcenter;
 
 import com.rabbitmq.client.ConnectionFactory;
+import org.springframework.amqp.core.AmqpTemplate;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.GenericXmlApplicationContext;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 
 import static java.lang.System.getenv;
 
-public class RabbitFactory {
+public class RabbitUtils {
+
+    private RabbitUtils(){}
+
+    public static AmqpTemplate getTemplate() {
+        ApplicationContext context = new GenericXmlApplicationContext("classpath:/rabbit-context.xml");
+        return context.getBean(AmqpTemplate.class);
+    }
 
     public static ConnectionFactory getConnectionFactory() throws URISyntaxException {
         ConnectionFactory factory = new ConnectionFactory();
@@ -21,7 +31,7 @@ public class RabbitFactory {
 
         return factory;
     }
-
+    
     private static String getEnvOrThrow(String name) {
         final String env = getenv(name);
         if (env == null) {

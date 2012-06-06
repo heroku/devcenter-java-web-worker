@@ -30,7 +30,7 @@
                     <programs>
                         <program>
                             <mainClass>com.heroku.devcenter.RabbitReceiver</mainClass>
-                            <name>receiver</name>
+                            <name>worker</name>
                         </program>
                     </programs>
                 </configuration>

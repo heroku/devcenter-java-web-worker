@@ -2,8 +2,7 @@ package com.heroku.devcenter;
 
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.Queue;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,9 +19,8 @@ import java.util.Map;
 public class BigOperationWebController {
 
     // load RabbitMQ configuration provided by Spring
-    private final ApplicationContext rabbitConfig = new AnnotationConfigApplicationContext(RabbitConfiguration.class);
-    private final AmqpTemplate amqpTemplate = rabbitConfig.getBean(AmqpTemplate.class);
-    private final Queue rabbitQueue = rabbitConfig.getBean(Queue.class);
+    @Autowired private AmqpTemplate amqpTemplate;
+    @Autowired private Queue rabbitQueue;
 
     @ModelAttribute("bigOp")
     public BigOperation newBigOp() {

@@ -1,121 +1,94 @@
-## Using RabbitMQ from Java
+## Asynchronous Web-Worker Model Using RabbitMQ in Java
 
-RabbitMQ provides a standard Java client. In order to use the client in your project you have to declare the dependency in your build and initialize the connection from the environment variable that Heroku provides to your application.
+As explained in the [Worker Dynos, Background Jobs and Queueing](background-jobs-queueing) article, web requests
+should be completed as fast as possible. If an operation may take a long time, it is best to send it to a worker
+dyno to be processed in the background. This article demostrates this with an example application using Spring
+[MVC](http://static.springsource.org/spring/docs/current/spring-framework-reference/html/mvc.html) and
+[AMPQ](http://www.springsource.org/spring-amqp) with the Heroku [RabbitMQ add-on](https://addons.heroku.com/rabbitmq).
 
-### Add the RabbitMQ client to Your Pom.xml
+### Clone the Reference Application
 
-Add the following dependency to your pom.xml in order to use the RabbitMQ client:
+To get started, [clone the example reference application](https://api.heroku.com/myapps/devcenter-java-web-worker/clone).
+This will automatically create your own copy of the app pre-configured with the RabbitMQ add-on.
+Follow instructions in the cloned app to see a demostration of the model.
 
-    <dependency>
-      <groupId>com.rabbitmq</groupId>
-      <artifactId>amqp-client</artifactId>
-      <version>2.7.0</version>
-    </dependency>
+The [source code](https://github.com/heroku/devcenter-java-web-worker) of the reference application is also available for browsing or cloning.
 
-### Use RabbitMQ in Your Application
+### Code Walkthrough
 
-Create the RabbitMQ connection factory:
+The application is comprised of two processes: `web` and `worker`.
+The `web` process is a simple Spring MVC app that receives requests from users on the web and fowards them as messages to RabbitMQ for background processing.
+The `worker` process is a simple Java app using Spring AMPQ that listens for new messages from RabbitMQ and processes them.
+The `web` and `worker` processes can be scaled independently depending on application needs.
 
-    :::java
-    public class RabbitFactoryUtil {
-        public static ConnectionFactory getConnectionFactory() throws URISyntaxException {
-            ConnectionFactory factory = new ConnectionFactory();
-            URI uri = new URI(getenv("RABBITMQ_URL"));
-            factory.setUsername(uri.getUserInfo().split(":")[0]);
-            factory.setPassword(uri.getUserInfo().split(":")[1]);
-            factory.setHost(uri.getHost());
-            factory.setPort(uri.getPort());
-            factory.setVirtualHost(uri.getPath().substring(1));
-            return factory;
-        }
-    }
+The application is structured as a Maven multi-module project with `web` and `worker` modules for each of the two
+processes as well as a shared `common` module. The `common` module contains the common `BigOperation` model class and the
+`RabbitConfiguration` class that reads the `RABBITMQ_URL` environment variable provided by the RabbitMQ add-on and
+makes it available to the rest of the application:
 
-Send message to a queue:
+     @Bean
+     public ConnectionFactory connectionFactory() {
+         final URI rabbitMqUrl;
+         try {
+             rabbitMqUrl = new URI(getEnvOrThrow("RABBITMQ_URL"));
+         } catch (URISyntaxException e) {
+             throw new RuntimeException(e);
+         }
 
-    :::java
-    Connection connection = factory.newConnection();
-    Channel channel = connection.createChannel();
-    channel.exchangeDeclare("sample-exchange", "direct", true);
-    channel.queueDeclare("sample-queue", true, false, false, null);
-    channel.queueBind("sample-queue", "sample-exchange", "sample-key");
-    channel.basicPublish("sample-exchange", "sample-key", null, "sample message".getBytes("UTF-8");
+         final CachingConnectionFactory factory = new CachingConnectionFactory();
+         factory.setUsername(rabbitMqUrl.getUserInfo().split(":")[0]);
+         factory.setPassword(rabbitMqUrl.getUserInfo().split(":")[1]);
+         factory.setHost(rabbitMqUrl.getHost());
+         factory.setPort(rabbitMqUrl.getPort());
+         factory.setVirtualHost(rabbitMqUrl.getPath().substring(1));
 
-Receive message from a queue:
+         return factory;
+     }
 
-    :::java
-    Connection connection = factory.newConnection();
-    Channel channel = connection.createChannel();
-    channel.exchangeDeclare("sample-exchange", "direct", true);
-    channel.queueDeclare("sample-queue", true, false, false, null);
-    channel.queueBind("sample-queue", "sample-exchange", "sample-key");
-    QueueingConsumer consumer = new QueueingConsumer(channel);
-    channel.basicConsume(queueName, true, consumer);
-        
-    while (true) {
-        //consumer.nextDelivery will block until it receives a message
-       	QueueingConsumer.Delivery delivery = consumer.nextDelivery();
-    }
+#### Web Process
+The `web` process has this configuration `@autowired` by Spring in `BigOperationWebController`:
 
-### Using RabbitMQ with Spring
+    @Autowired private AmqpTemplate amqpTemplate;
+    @Autowired private Queue rabbitQueue;
 
-Spring provides a rabbit template that can be used to easily connect to RabbitMQ. These allow much of the setup required each time a queue connection is made to be moved into Spring configuration and kept in the template classes within the Spring container. There are XML namespaces that make the configuration easier as well.
+When web requests are received by the controller, they are coverted to AMPQ messages and sent to RabbitMQ.
+The `AmqpTemplate` makes this easy with the following one-liner:
 
-To use the template first declare it in your pom.xml:
+    amqpTemplate.convertAndSend(rabbitQueue.getName(), bigOp);
 
-    <dependency>
-       <groupId>org.springframework.amqp</groupId>
-       <artifactId>spring-rabbit</artifactId>
-       <version>1.0.0.RELEASE</version>
-    </dependency>
+The `web` process then immediately returns a confirmation page to the user.
 
-Application context XML to configure the rabbit template:
+#### Worker Process
 
-    <beans xmlns="http://www.springframework.org/schema/beans"
-       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xmlns:context="http://www.springframework.org/schema/context"
-       xmlns:rabbit="http://www.springframework.org/schema/rabbit"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
-           http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
-           http://www.springframework.org/schema/rabbit http://www.springframework.org/schema/rabbit/spring-rabbit.xsd"
-       default-autowire="byName">
+Because the `worker` process is running in a sepatate dyno and is outside an application context,
+the configuration must be manually wired from `RabbitConfiguration` in `BigOperationWorker`:
 
-        <context:property-placeholder/>
+    ApplicationContext rabbitConfig = new AnnotationConfigApplicationContext(RabbitConfiguration.class);
+    ConnectionFactory rabbitConnectionFactory = rabbitConfig.getBean(ConnectionFactory.class);
+    Queue rabbitQueue = rabbitConfig.getBean(Queue.class);
+    MessageConverter messageConverter = new SimpleMessageConverter();
 
-        <bean id="cf" class="org.springframework.amqp.rabbit.connection.CachingConnectionFactory">
-            <!-- This constructor arg utilizes the RabbitFactoryUtil class shown in the java example above -->
-            <constructor-arg><value>#{ T(com.heroku.devcenter.RabbitFactory).getConnectionFactory()}</value></constructor-arg>
-        </bean>
+To avoid polling for new messages the `worker` process sets up a `SimpleMessageListenerContainer`, which asynchronously
+consumes messages by blocking until a message is delivered. First connection information must be provided:
 
-        <rabbit:queue id="sample-queue" durable="true" auto-delete="false" exclusive="false" name="sample-queue"/>
+    SimpleMessageListenerContainer listenerContainer = new SimpleMessageListenerContainer();
+    listenerContainer.setConnectionFactory(rabbitConnectionFactory);
+    listenerContainer.setQueueNames(rabbitQueue.getName());
 
-        <rabbit:direct-exchange name="sample-exchange" durable="true" auto-delete="false" id="sample-exchange">
-            <rabbit:bindings>
-                <rabbit:binding queue="sample-queue" key="sample-key"/>
-            </rabbit:bindings>
-        </rabbit:direct-exchange>
+ Next, the listener is defined by implementing the `MessageListener` interface. This is where the actual message processing happens:
 
-        <bean id="template" class="org.springframework.amqp.rabbit.core.RabbitTemplate">
-            <property name="connectionFactory" ref="cf"/>
-            <property name="exchange" value="sample-exchange"/>
-            <property name="queue" value="sample-queue"/>
-            <property name="routingKey" value="sample-key"/>
-        </bean>
+     listenerContainer.setMessageListener(new MessageListener() {
+             public void onMessage(Message message) {
+                 // message is converted back into model object
+                 final BigOperation bigOp = (BigOperation) messageConverter.fromMessage(message);
 
-    </beans>
+                 // simply printing out the operation, but expensive computation could happen here
+                 System.out.println("Received from RabbitMQ: " + bigOp);
+             }
+         });
 
-Sending messages with rabbit template:
+The example application also configures an error handler and shutdown hook for completeness.
 
-    :::java
-    ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext("applicationContext.xml");
-    RabbitTemplate rabbitTemplate = ctx.getBean(RabbitTemplate.class);
-    rabbitTemplate.send(new Message("sample message".getBytes("UTF-8"), new MessageProperties()));
+Finally the listener container is starter, which will stay alive until the JVM is shutdown:
 
-Receiving messages with rabbit template:
-
-    :::java
-    ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext("applicationContext.xml");
-    RabbitTemplate rabbitTemplate = ctx.getBean(RabbitTemplate.class);
-    Message response = rabbitTemplate.receive();
-
-
-You can also download the [sample code](http://github.com/heroku/devcenter-rabbitmq-java)
+    listenerContainer.start();

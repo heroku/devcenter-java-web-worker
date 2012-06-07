@@ -198,7 +198,7 @@
             <h2>Step 4. Makes some changes to the app</h2>
             <ol>
               <li>Open <code>worker/src/main/java/com/heroku/devcenter/BigOperationWorker.java</code></li>
-              <li>Change the listener to print the name of the operation in uppercase by adding to the `onMessage()` method:<br/>
+              <li>Change the listener to print the name of the operation in uppercase by adding to the  <code>onMessage()</code> method:<br/>
                   <code>System.out.println(bigOp.getName().toUpperCase());</code></li>
             </ol>
 
@@ -289,7 +289,7 @@ Authentication successful.</pre>
             <h2>Step 4. Makes some changes to the app</h2>
             <ol>
                 <li>Open <code>worker/src/main/java/com/heroku/devcenter/BigOperationWorker.java</code> in your favorite editor</li>
-                <li>Change the listener to print the name of the operation in uppercase by adding to the `onMessage()` method:<br/>
+                <li>Change the listener to print the name of the operation in uppercase by adding to the <code>onMessage()</code> method:<br/>
                     <code>System.out.println(bigOp.getName().toUpperCase());</code></li>
             </ol>
 

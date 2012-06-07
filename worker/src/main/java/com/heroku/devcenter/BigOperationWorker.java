@@ -32,6 +32,8 @@ public class BigOperationWorker {
         listenerContainer.setMessageListener(new MessageListener() {
             public void onMessage(Message message) {
                 final BigOperation bigOp = (BigOperation) messageConverter.fromMessage(message);
+
+                // simply printing out the operation, but expensive computation could happen here
                 System.out.println("Received from RabbitMQ: " + bigOp);
             }
         });

@@ -3,7 +3,9 @@ package com.heroku.devcenter;
 import java.io.Serializable;
 
 /**
- * @author Ryan Brainard
+ * A model class for a big, imaginary, expensive operation
+ * that a user submits via the web, but is processed async
+ * by a worker.
  */
 public class BigOperation implements Serializable {
 

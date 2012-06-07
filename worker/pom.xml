@@ -29,7 +29,7 @@
                     <assembleDirectory>target</assembleDirectory>
                     <programs>
                         <program>
-                            <mainClass>com.heroku.devcenter.RabbitReceiver</mainClass>
+                            <mainClass>com.heroku.devcenter.BigOperationWorker</mainClass>
                             <name>worker</name>
                         </program>
                     </programs>

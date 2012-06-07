@@ -11,7 +11,10 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.util.ErrorHandler;
 
-public class RabbitReceiver {
+/**
+ * Worker for receiving and processing BigOperations asynchronously.
+ */
+public class BigOperationWorker {
 
     public static void main(String[] args) {
         final ApplicationContext rabbitConfig = new AnnotationConfigApplicationContext(RabbitConfiguration.class);
@@ -29,7 +32,7 @@ public class RabbitReceiver {
         listenerContainer.setMessageListener(new MessageListener() {
             public void onMessage(Message message) {
                 final BigOperation bigOp = (BigOperation) messageConverter.fromMessage(message);
-                System.out.println("Received Big Operation: " + bigOp.getName());
+                System.out.println("Received from RabbitMQ: " + bigOp);
             }
         });
 
@@ -44,12 +47,13 @@ public class RabbitReceiver {
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
-                System.out.println("Shutting down RabbitReceiver");
+                System.out.println("Shutting down BigOperationWorker");
                 listenerContainer.shutdown();
             }
         });
 
         // start up the listener. this will block until JVM is killed.
         listenerContainer.start();
+        System.out.println("BigOperationWorker started");
     }
 }

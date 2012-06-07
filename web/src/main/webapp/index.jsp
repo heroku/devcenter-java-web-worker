@@ -3,7 +3,7 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <title>Spring MVC Template for Salesforce</title>
+    <title>Java Web-Worker Template</title>
 
     <meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -56,7 +56,7 @@
     <div class="navbar navbar-fixed-top">
       <div class="navbar-inner">
         <div class="container">
-          <a href="/" class="brand">Spring MVC and Hibernate Template</a>
+          <a href="/" class="brand">Java Web-Worker Template</a>
           <!--
           IMPORTANT:
           This is Heroku specific markup. Remove to customize.
@@ -73,13 +73,14 @@
           <h1 class="alert alert-success">Your app is ready!</h1>
           
           <div class="page-header">
-            <h1>Get started with your Spring MVC Application for Salesforce</h1>
+            <h1>Get started with your Java Web-Worker Template</h1>
           </div>
           
           <div style="margin-bottom: 20px">
-            This is a template for a Spring MVC web application to work with data from Salesforce.
-            The sample code is a dynamic CRUD application that allows users to create, read, edit, and delete.
-            To try it out go to the <a href="/sfdc/sobjects">My Objects</a> page. Then use Eclipse or the Command Line to deploy some changes.
+            This is a template for a Java web app that sends expensive operations to a message queue for asynchronous processing by one or more worker dynos.
+            The sample code uses the <a href="http://www.springsource.org/spring-amqp">Spring AMPQ</a> library along with the
+            Heroku <a href="https://addons.heroku.com/rabbitmq">RabbitMQ add-on</a>.
+            To try it out go to the <a href="/spring/rabbit">Big Operation Submission Form</a>. Then use Eclipse or the Command Line to deploy some changes.
           </div>
           
         <ul id="tab" class="nav nav-tabs">
@@ -244,7 +245,7 @@
             <div class="hero-unit">
               <h1>Done!</h1>
               <p>You've just cloned, modified, and deployed a brand new app.</p>
-              <a href="/sfdc/sobjects" class="btn btn-primary btn-large">See your changes</a>
+              <a href="/spring/rabbit" class="btn btn-primary btn-large">See your changes</a>
                 
               <p style="margin-top: 20px">Learn more at the   
               <a href="http://devcenter.heroku.com/categories/java">Heroku Dev Center</a></p>
@@ -304,7 +305,7 @@ Authentication successful.</pre>
             <div class="hero-unit">
               <h1>Done!</h1>
               <p>You've just cloned, modified, and deployed a brand new app.</p>
-              <a href="/sfdc/sobjects" class="btn btn-primary btn-large">See your changes</a>
+              <a href="/spring/rabbit" class="btn btn-primary btn-large">See your changes</a>
                 
               <p style="margin-top: 20px">Learn more at the   
               <a href="http://devcenter.heroku.com/categories/java">Heroku Dev Center</a></p>

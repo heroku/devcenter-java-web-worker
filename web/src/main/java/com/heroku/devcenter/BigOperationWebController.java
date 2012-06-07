@@ -15,7 +15,7 @@ import java.util.Map;
  * and sending them to RabbitMQ for async processing by BigOperationWorker
  */
 @Controller
-@RequestMapping("/rabbit")
+@RequestMapping("/bigOp")
 public class BigOperationWebController {
 
     // load RabbitMQ configuration provided by Spring

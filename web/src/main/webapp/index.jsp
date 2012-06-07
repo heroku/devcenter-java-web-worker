@@ -80,7 +80,7 @@
             This is a template for a Java web app that sends expensive operations to a message queue for asynchronous processing by one or more worker dynos.
             The sample code uses the <a href="http://www.springsource.org/spring-amqp">Spring AMPQ</a> library along with the
             Heroku <a href="https://addons.heroku.com/rabbitmq">RabbitMQ add-on</a>.
-            To try it out go to the <a href="/spring/rabbit">Big Operation Submission Form</a>. Then use Eclipse or the Command Line to deploy some changes.
+            To try it out go to the <a href="/spring/bigOp">Big Operation Submission Form</a>. Then use Eclipse or the Command Line to deploy some changes.
           </div>
           
         <ul id="tab" class="nav nav-tabs">
@@ -197,9 +197,9 @@
 
             <h2>Step 4. Makes some changes to the app</h2>
             <ol>
-              <li>Open <code>listSObjectTypes.jsp</code></li>
-              <li>Display the list of objects by their plural label instead of their standard, singular label
-                  by replacing <code>type.label</code> on line 13 with <code>type.labelPlural</code></li>
+              <li>Open <code>worker/src/main/java/com/heroku/devcenter/BigOperationWorker.java</code></li>
+              <li>Change the listener to print the name of the operation in uppercase by adding to the `onMessage()` method:<br/>
+                  <code>System.out.println(bigOp.getName().toUpperCase());</code></li>
             </ol>
 
             <h2>Step 5. Deploy to Heroku</h2>
@@ -288,9 +288,9 @@ Authentication successful.</pre>
 
             <h2>Step 4. Makes some changes to the app</h2>
             <ol>
-              <li>Open <code>listSObjectTypes.jsp</code> in your favorite editor</li>
-              <li>Display the list of objects by their plural label instead of their standard, singular label
-                  by replacing <code>type.label</code> on line 13 with <code>type.labelPlural</code></li>
+                <li>Open <code>worker/src/main/java/com/heroku/devcenter/BigOperationWorker.java</code> in your favorite editor</li>
+                <li>Change the listener to print the name of the operation in uppercase by adding to the `onMessage()` method:<br/>
+                    <code>System.out.println(bigOp.getName().toUpperCase());</code></li>
             </ol>
 
             <h2>Step 5. Make sure the app still compiles</h2>
@@ -305,7 +305,7 @@ Authentication successful.</pre>
             <div class="hero-unit">
               <h1>Done!</h1>
               <p>You've just cloned, modified, and deployed a brand new app.</p>
-              <a href="/spring/rabbit" class="btn btn-primary btn-large">See your changes</a>
+              <a href="/spring/bigOp" class="btn btn-primary btn-large">See your changes</a>
                 
               <p style="margin-top: 20px">Learn more at the   
               <a href="http://devcenter.heroku.com/categories/java">Heroku Dev Center</a></p>

@@ -245,7 +245,7 @@
             <div class="hero-unit">
               <h1>Done!</h1>
               <p>You've just cloned, modified, and deployed a brand new app.</p>
-              <a href="/spring/rabbit" class="btn btn-primary btn-large">See your changes</a>
+              <a href="/spring/bigOp" class="btn btn-primary btn-large">See your changes</a>
                 
               <p style="margin-top: 20px">Learn more at the   
               <a href="http://devcenter.heroku.com/categories/java">Heroku Dev Center</a></p>

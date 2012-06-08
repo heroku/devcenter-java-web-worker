@@ -10,12 +10,19 @@ which provides [RabbitMQ](http://www.rabbitmq.com/) as a service.
 ### Clone the Reference Application
 
 To get started, [clone the example reference application](https://api.heroku.com/myapps/devcenter-java-web-worker/clone).
-This will automatically create your own copy of the app pre-configured with the RabbitMQ add-on.
+This will automatically create your own copy of the app pre-configured with the CloudAMPQ add-on.
 Follow instructions in the cloned app to see a demostration of the model.
 
 The [source code](https://github.com/heroku/devcenter-java-web-worker) of the reference application is also available for browsing or cloning.
 
-### Code Walkthrough
+If you do not clone the reference app or wish to add CloudAMPQ to another app, use the `heroku addons:add cloudamqp` command.
+
+    :::term
+    $ heroku addons:add cloudamqp
+    Adding cloudamqp to furious-sunrise-1234... done, v14 (free)
+    cloudamqp documentation available at: https://devcenter.heroku.com/articles/cloudamqp
+
+### Application Overview
 
 The application is comprised of two processes: `web` and `worker`.
 The `web` process is a simple Spring MVC app that receives requests from users on the web and fowards them as messages to RabbitMQ for background processing.
@@ -27,6 +34,7 @@ processes as well as a shared `common` module. The `common` module contains the 
 `RabbitConfiguration` class that reads the `CLOUDAMQP_URL` environment variable provided by the RabbitMQ add-on and
 makes it available to the rest of the application:
 
+     :::java
      @Bean
      public ConnectionFactory connectionFactory() {
          final URI rabbitMqUrl;
@@ -49,12 +57,14 @@ makes it available to the rest of the application:
 #### Web Process
 The `web` process has this configuration `@autowired` by Spring in `BigOperationWebController`:
 
+    :::java
     @Autowired private AmqpTemplate amqpTemplate;
     @Autowired private Queue rabbitQueue;
 
 When web requests are received by the controller, they are coverted to AMPQ messages and sent to RabbitMQ.
 The `AmqpTemplate` makes this easy with the following one-liner:
 
+    :::java
     amqpTemplate.convertAndSend(rabbitQueue.getName(), bigOp);
 
 The `web` process then immediately returns a confirmation page to the user.
@@ -64,6 +74,7 @@ The `web` process then immediately returns a confirmation page to the user.
 Because the `worker` process is running in a sepatate dyno and is outside an application context,
 the configuration must be manually wired from `RabbitConfiguration` in `BigOperationWorker`:
 
+    :::java
     ApplicationContext rabbitConfig = new AnnotationConfigApplicationContext(RabbitConfiguration.class);
     ConnectionFactory rabbitConnectionFactory = rabbitConfig.getBean(ConnectionFactory.class);
     Queue rabbitQueue = rabbitConfig.getBean(Queue.class);
@@ -72,12 +83,14 @@ the configuration must be manually wired from `RabbitConfiguration` in `BigOpera
 To avoid polling for new messages the `worker` process sets up a `SimpleMessageListenerContainer`, which asynchronously
 consumes messages by blocking until a message is delivered. First connection information must be provided:
 
+    :::java
     SimpleMessageListenerContainer listenerContainer = new SimpleMessageListenerContainer();
     listenerContainer.setConnectionFactory(rabbitConnectionFactory);
     listenerContainer.setQueueNames(rabbitQueue.getName());
 
  Next, the listener is defined by implementing the `MessageListener` interface. This is where the actual message processing happens:
 
+    :::java
      listenerContainer.setMessageListener(new MessageListener() {
              public void onMessage(Message message) {
                  // message is converted back into model object
@@ -90,6 +103,7 @@ consumes messages by blocking until a message is delivered. First connection inf
 
 The example application also configures an error handler and shutdown hook for completeness.
 
-Finally the listener container is starter, which will stay alive until the JVM is shutdown:
+Finally the listener container is started, which will stay alive until the JVM is shutdown:
 
+    :::java
     listenerContainer.start();

@@ -79,7 +79,7 @@
           <div style="margin-bottom: 20px">
             This is a template for a Java web app that sends expensive operations to a message queue for asynchronous processing by one or more worker dynos.
             The sample code uses the <a href="http://www.springsource.org/spring-amqp">Spring AMPQ</a> library along with the
-            Heroku <a href="https://addons.heroku.com/rabbitmq">RabbitMQ add-on</a>.
+            Heroku <a href="https://addons.heroku.com/cloudamqp">RabbitMQ add-on</a>.
             To try it out go to the <a href="/spring/bigOp">Big Operation Submission Form</a>. Then use Eclipse or the Command Line to deploy some changes.
           </div>
           

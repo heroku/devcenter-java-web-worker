@@ -19,19 +19,19 @@ public class RabbitConfiguration {
 
     @Bean
     public ConnectionFactory connectionFactory() {
-        final URI rabbitMqUrl;
+        final URI ampqUrl;
         try {
-            rabbitMqUrl = new URI(getEnvOrThrow("RABBITMQ_URL"));
+            ampqUrl = new URI(getEnvOrThrow("CLOUDAMQP_URL"));
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }
 
         final CachingConnectionFactory factory = new CachingConnectionFactory();
-        factory.setUsername(rabbitMqUrl.getUserInfo().split(":")[0]);
-        factory.setPassword(rabbitMqUrl.getUserInfo().split(":")[1]);
-        factory.setHost(rabbitMqUrl.getHost());
-        factory.setPort(rabbitMqUrl.getPort());
-        factory.setVirtualHost(rabbitMqUrl.getPath().substring(1));
+        factory.setUsername(ampqUrl.getUserInfo().split(":")[0]);
+        factory.setPassword(ampqUrl.getUserInfo().split(":")[1]);
+        factory.setHost(ampqUrl.getHost());
+        factory.setPort(ampqUrl.getPort());
+        factory.setVirtualHost(ampqUrl.getPath().substring(1));
 
         return factory;
     }

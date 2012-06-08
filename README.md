@@ -4,7 +4,8 @@ As explained in the [Worker Dynos, Background Jobs and Queueing](background-jobs
 should be completed as fast as possible. If an operation may take a long time, it is best to send it to a worker
 dyno to be processed in the background. This article demostrates this with an example application using Spring
 [MVC](http://static.springsource.org/spring/docs/current/spring-framework-reference/html/mvc.html) and
-[AMPQ](http://www.springsource.org/spring-amqp) with the Heroku [RabbitMQ add-on](https://addons.heroku.com/rabbitmq).
+[AMPQ](http://www.springsource.org/spring-amqp) with the Heroku [CloudAMPQ add-on](https://addons.heroku.com/cloudamqp),
+which provides [RabbitMQ](http://www.rabbitmq.com/) as a service.
 
 ### Clone the Reference Application
 
@@ -23,14 +24,14 @@ The `web` and `worker` processes can be scaled independently depending on applic
 
 The application is structured as a Maven multi-module project with `web` and `worker` modules for each of the two
 processes as well as a shared `common` module. The `common` module contains the common `BigOperation` model class and the
-`RabbitConfiguration` class that reads the `RABBITMQ_URL` environment variable provided by the RabbitMQ add-on and
+`RabbitConfiguration` class that reads the `CLOUDAMQP_URL` environment variable provided by the RabbitMQ add-on and
 makes it available to the rest of the application:
 
      @Bean
      public ConnectionFactory connectionFactory() {
          final URI rabbitMqUrl;
          try {
-             rabbitMqUrl = new URI(getEnvOrThrow("RABBITMQ_URL"));
+             rabbitMqUrl = new URI(getEnvOrThrow("CLOUDAMQP_URL"));
          } catch (URISyntaxException e) {
              throw new RuntimeException(e);
          }

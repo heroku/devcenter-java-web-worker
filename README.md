@@ -7,15 +7,18 @@ dyno to be processed in the background. This article demostrates this with an ex
 [AMPQ](http://www.springsource.org/spring-amqp) with the Heroku [CloudAMPQ add-on](https://addons.heroku.com/cloudamqp),
 which provides [RabbitMQ](http://www.rabbitmq.com/) as a service.
 
-### Clone the Reference Application
+### Getting Started
 
-To get started, [clone the example reference application](https://api.heroku.com/myapps/devcenter-java-web-worker/clone).
-This will automatically create your own copy of the app pre-configured with the CloudAMPQ add-on.
-Follow instructions in the cloned app to see a demostration of the model.
+This article walks through an example application pre-configured with the CloudAMPQ add-on.
+Follow the steps below to clone the application into your Heroku account:
+
+1. [Verify your Heroku account](https://heroku.com/confirm)
+2. [Clone the example reference application](https://api.heroku.com/myapps/devcenter-java-web-worker/clone)
+3. Follow instructions in the cloned app to see a demostration and make changes.
 
 The [source code](https://github.com/heroku/devcenter-java-web-worker) of the reference application is also available for browsing or cloning.
 
-If you do not clone the reference app or wish to add CloudAMPQ to another app, use the `heroku addons:add cloudamqp` command.
+If you do not clone the reference app or wish to add CloudAMPQ to another app, use the `heroku addons:add cloudamqp` command:
 
     :::term
     $ heroku addons:add cloudamqp

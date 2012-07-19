@@ -1,6 +1,6 @@
 ## Asynchronous Web-Worker Model Using RabbitMQ in Java
 
-Long running web requests should be processed asynchronously through a worker process as a the best practice. For a more in-depth understanding of this architectural pattern read the [Worker Dynos, Background Jobs and Queueing](https://devcenter.heroku.com/articles/background-jobs-queueing) article.
+It is a best practice to process long running web requests asynchronously through a worker process. For a more in-depth understanding of this architectural pattern read the [Worker Dynos, Background Jobs and Queueing](https://devcenter.heroku.com/articles/background-jobs-queueing) article.
 
 The article demonstrates this pattern using an sample Java application with [Spring MVC](http://static.springsource.org/spring/docs/current/spring-framework-reference/html/mvc.html) and [RabbitMQ](http://www.rabbitmq.com/). It leverages [CloudAMPQ add-on](https://addons.heroku.com/cloudamqp) which is one of the RabbitMQ addons in the Heroku add-ons catalog.
 

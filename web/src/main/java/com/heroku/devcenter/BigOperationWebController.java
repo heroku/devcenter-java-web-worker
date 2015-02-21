@@ -1,7 +1,7 @@
 package com.heroku.devcenter;
 
-import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -19,7 +19,7 @@ import java.util.Map;
 public class BigOperationWebController {
 
     // load RabbitMQ configuration provided by Spring
-    @Autowired private AmqpTemplate amqpTemplate;
+    @Autowired private RabbitTemplate amqpTemplate;
     @Autowired private Queue rabbitQueue;
 
     @ModelAttribute("bigOp")

@@ -1,8 +1,11 @@
 package com.heroku.devcenter;
 
+import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -35,7 +38,10 @@ public class BigOperationWebController {
     @RequestMapping(method = RequestMethod.POST)
     public String process(@ModelAttribute("bigOp") BigOperation bigOp, Map<String,Object> map) {
         // Receives the bigOp from the form submission, converts to a message, and sends to RabbitMQ.
-        amqpTemplate.convertAndSend(rabbitQueue.getName(), bigOp);
+        ApplicationContext context = new AnnotationConfigApplicationContext(RabbitConfiguration.class);
+        AmqpTemplate amqpTemplate = context.getBean(AmqpTemplate.class);
+        amqpTemplate.convertAndSend(bigOp);
+
         System.out.println("Sent to RabbitMQ: " + bigOp);
 
         // Send the bigOp back to the confirmation page for displaying details in view

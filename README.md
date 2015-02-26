@@ -1,41 +1,31 @@
 ## Asynchronous Web-Worker Model Using RabbitMQ in Java
 
-As explained in the [Worker Dynos, Background Jobs and Queueing](background-jobs-queueing) article, web requests
-should be completed as fast as possible. If an operation may take a long time, it is best to send it to a worker
-dyno to be processed in the background. This article demostrates this with an example application using Spring
-[MVC](http://static.springsource.org/spring/docs/current/spring-framework-reference/html/mvc.html) and
-[AMPQ](http://www.springsource.org/spring-amqp) with the Heroku [CloudAMPQ add-on](https://addons.heroku.com/cloudamqp),
-which provides [RabbitMQ](http://www.rabbitmq.com/) as a service.
+It is a best practice to process long running web requests asynchronously through a worker process. For a more in-depth understanding of this architectural pattern read the [Worker Dynos, Background Jobs and Queueing](https://devcenter.heroku.com/articles/background-jobs-queueing) article.
+
+The article demonstrates this pattern using an sample Java application with [Spring MVC](http://static.springsource.org/spring/docs/current/spring-framework-reference/html/mvc.html) and [RabbitMQ](http://www.rabbitmq.com/). It leverages [CloudAMPQ add-on](https://addons.heroku.com/cloudamqp) which is one of the RabbitMQ addons in the Heroku add-ons catalog.
 
 ### Getting Started
 
-This article walks through an example application pre-configured with the CloudAMPQ add-on.
-Follow the steps below to clone the application into your Heroku account:
+Follow the below steps below to clone this application into your Heroku account:
 
-1. [Verify your Heroku account](https://heroku.com/confirm)
-2. [Clone the example reference application](https://api.heroku.com/myapps/devcenter-java-web-worker/clone)
-3. Follow instructions in the cloned app to see a demostration and make changes.
+1. [Clone](https://api.heroku.com/myapps/devcenter-java-web-worker/clone) this sample application into your Heroku account
+2. Go to `http://yourappname.herokuapp.com/spring/bigOp` to try out the application
+3. Following the instructions at `http://yourappname.herokuapp.com/` to make changes using Eclipse or command line
 
-The [source code](https://github.com/heroku/devcenter-java-web-worker) of the reference application is also available for browsing or cloning.
-
-If you do not clone the reference app or wish to add CloudAMPQ to another app, use the `heroku addons:add cloudamqp` command:
-
-    :::term
-    $ heroku addons:add cloudamqp
-    Adding cloudamqp to furious-sunrise-1234... done, v14 (free)
-    cloudamqp documentation available at: https://devcenter.heroku.com/articles/cloudamqp
+Sample code of [this application](https://github.com/heroku/devcenter-java-web-worker) is available on GitHub.
 
 ### Application Overview
 
 The application is comprised of two processes: `web` and `worker`.
-The `web` process is a simple Spring MVC app that receives requests from users on the web and fowards them as messages to RabbitMQ for background processing.
-The `worker` process is a simple Java app using Spring AMPQ that listens for new messages from RabbitMQ and processes them.
-The `web` and `worker` processes can be scaled independently depending on application needs.
 
-The application is structured as a Maven multi-module project with `web` and `worker` modules for each of the two
-processes as well as a shared `common` module. The `common` module contains the common `BigOperation` model class and the
-`RabbitConfiguration` class that reads the `CLOUDAMQP_URL` environment variable provided by the RabbitMQ add-on and
-makes it available to the rest of the application:
+* __`web`__ : A simple Spring MVC app that receives web requests and queues them in RabbitMQ for processing.
+* __`worker`__ :  A standalone Java application using Spring AMQP to read & processes messages from RabbitMQ.
+
+Because these are separate processes, they can be scaled independently based on specific application needs. Read the [Process Model](https://devcenter.heroku.com/articles/process-model) article for a more in-depth understanding of Heroku's process model.
+
+### RabbitMQ Configuration
+
+The RabbitMQ configuration is done through `RabbitConfiguration.java` which reads the `CLOUDAMQP_URL` environment variable provided by the [CloudAMPQ](https://addons.heroku.com/cloudamqp) add-on, and makes it available to the rest of the application.
 
      :::java
      @Bean
@@ -57,25 +47,24 @@ makes it available to the rest of the application:
          return factory;
      }
 
-#### Web Process
-The `web` process has this configuration `@autowired` by Spring in `BigOperationWebController`:
+### Web Process
+
+`BigOperationWebController.java`, a Spring MVC controller queues up the web requests into RabbitMQ. This class has the the Spring AMQP Template and queue configuration `@autowired`.
 
     :::java
     @Autowired private AmqpTemplate amqpTemplate;
     @Autowired private Queue rabbitQueue;
 
-When web requests are received by the controller, they are coverted to AMPQ messages and sent to RabbitMQ.
-The `AmqpTemplate` makes this easy with the following one-liner:
+When web requests are received by the controller, they are coverted to AMPQ messages and sent to RabbitMQ. The `AmqpTemplate` makes this easy by including the following line:
 
     :::java
     amqpTemplate.convertAndSend(rabbitQueue.getName(), bigOp);
 
-The `web` process then immediately returns a confirmation page to the user.
+The `web` process immediately returns a confirmation page to the user.
 
-#### Worker Process
+### Worker Process
 
-Because the `worker` process is running in a sepatate dyno and is outside an application context,
-the configuration must be manually wired from `RabbitConfiguration` in `BigOperationWorker`:
+The `worker` process is running as a separate process outside of the Spring web application context. Hence the configuration must be explicitly wired from `RabbitConfiguration`. `BigOperationWorker` is the main Java class executed in the `worker` processes and loads the RabbitMQ configuration as below:
 
     :::java
     ApplicationContext rabbitConfig = new AnnotationConfigApplicationContext(RabbitConfiguration.class);
@@ -83,30 +72,32 @@ the configuration must be manually wired from `RabbitConfiguration` in `BigOpera
     Queue rabbitQueue = rabbitConfig.getBean(Queue.class);
     MessageConverter messageConverter = new SimpleMessageConverter();
 
-To avoid polling for new messages the `worker` process sets up a `SimpleMessageListenerContainer`, which asynchronously
-consumes messages by blocking until a message is delivered. First connection information must be provided:
+Spring provides a convenience class `SimpleMessageListenerContainer` to receive messages from a queue and delegate it to the MessageListener that is injected into it. The RabbitMQ connection for `SimpleMessageListenerContainer` is setup as follows:
 
     :::java
     SimpleMessageListenerContainer listenerContainer = new SimpleMessageListenerContainer();
     listenerContainer.setConnectionFactory(rabbitConnectionFactory);
     listenerContainer.setQueueNames(rabbitQueue.getName());
 
- Next, the listener is defined by implementing the `MessageListener` interface. This is where the actual message processing happens:
+ The listener is defined by implementing the `MessageListener` interface. The long running `BigOperation` is invoked from the listener.
 
     :::java
      listenerContainer.setMessageListener(new MessageListener() {
              public void onMessage(Message message) {
                  // message is converted back into model object
                  final BigOperation bigOp = (BigOperation) messageConverter.fromMessage(message);
-
-                 // simply printing out the operation, but expensive computation could happen here
+                
+                 // simply printing out the operation, but expensive computation would happen here
                  System.out.println("Received from RabbitMQ: " + bigOp);
              }
          });
 
-The example application also configures an error handler and shutdown hook for completeness.
 
-Finally the listener container is started, which will stay alive until the JVM is shutdown:
+To start listening for messages on the queue, the listener container needs to be started.
 
     :::java
     listenerContainer.start();
+
+### Maven project setup
+
+The application is structured as a Maven multi-module project with 3 modules: web, worker (for each of the two processes) and common module which contains the `BigOperation.java` model class and the `RabbitConfiguration.java` configuration class. 

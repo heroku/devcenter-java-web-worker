@@ -38,41 +38,41 @@ processes as well as a shared `common` module. The `common` module contains the 
 `RabbitConfiguration` class that reads the `CLOUDAMQP_URL` environment variable provided by the RabbitMQ add-on and
 makes it available to the rest of the application:
 
-     ```java
-     @Bean
-     public ConnectionFactory connectionFactory() {
-         final URI rabbitMqUrl;
-         try {
-             rabbitMqUrl = new URI(getEnvOrThrow("CLOUDAMQP_URL"));
-         } catch (URISyntaxException e) {
-             throw new RuntimeException(e);
-         }
+```java
+@Bean
+public ConnectionFactory connectionFactory() {
+    final URI rabbitMqUrl;
+    try {
+        rabbitMqUrl = new URI(getEnvOrThrow("CLOUDAMQP_URL"));
+    } catch (URISyntaxException e) {
+        throw new RuntimeException(e);
+    }
 
-         final CachingConnectionFactory factory = new CachingConnectionFactory();
-         factory.setUsername(rabbitMqUrl.getUserInfo().split(":")[0]);
-         factory.setPassword(rabbitMqUrl.getUserInfo().split(":")[1]);
-         factory.setHost(rabbitMqUrl.getHost());
-         factory.setPort(rabbitMqUrl.getPort());
-         factory.setVirtualHost(rabbitMqUrl.getPath().substring(1));
+    final CachingConnectionFactory factory = new CachingConnectionFactory();
+    factory.setUsername(rabbitMqUrl.getUserInfo().split(":")[0]);
+    factory.setPassword(rabbitMqUrl.getUserInfo().split(":")[1]);
+    factory.setHost(rabbitMqUrl.getHost());
+    factory.setPort(rabbitMqUrl.getPort());
+    factory.setVirtualHost(rabbitMqUrl.getPath().substring(1));
 
-         return factory;
-     }
+    return factory;
+}
      ```
 
 #### Web Process
 The `web` process has this configuration `@autowired` by Spring in `BigOperationWebController`:
 
-    ```java
-    @Autowired private AmqpTemplate amqpTemplate;
-    @Autowired private Queue rabbitQueue;
-    ```
+```java
+@Autowired private AmqpTemplate amqpTemplate;
+@Autowired private Queue rabbitQueue;
+```
 
 When web requests are received by the controller, they are coverted to AMPQ messages and sent to RabbitMQ.
 The `AmqpTemplate` makes this easy with the following one-liner:
 
-    ```java
-    amqpTemplate.convertAndSend(rabbitQueue.getName(), bigOp);
-    ```
+```java
+amqpTemplate.convertAndSend(rabbitQueue.getName(), bigOp);
+```
 
 The `web` process then immediately returns a confirmation page to the user.
 
@@ -81,40 +81,40 @@ The `web` process then immediately returns a confirmation page to the user.
 Because the `worker` process is running in a sepatate dyno and is outside an application context,
 the configuration must be manually wired from `RabbitConfiguration` in `BigOperationWorker`:
 
-    ```java
-    ApplicationContext rabbitConfig = new AnnotationConfigApplicationContext(RabbitConfiguration.class);
-    ConnectionFactory rabbitConnectionFactory = rabbitConfig.getBean(ConnectionFactory.class);
-    Queue rabbitQueue = rabbitConfig.getBean(Queue.class);
-    MessageConverter messageConverter = new SimpleMessageConverter();
-    ```
+```java
+ApplicationContext rabbitConfig = new AnnotationConfigApplicationContext(RabbitConfiguration.class);
+ConnectionFactory rabbitConnectionFactory = rabbitConfig.getBean(ConnectionFactory.class);
+Queue rabbitQueue = rabbitConfig.getBean(Queue.class);
+MessageConverter messageConverter = new SimpleMessageConverter();
+```
 
 To avoid polling for new messages the `worker` process sets up a `SimpleMessageListenerContainer`, which asynchronously
 consumes messages by blocking until a message is delivered. First connection information must be provided:
 
-    ```java
-    SimpleMessageListenerContainer listenerContainer = new SimpleMessageListenerContainer();
-    listenerContainer.setConnectionFactory(rabbitConnectionFactory);
-    listenerContainer.setQueueNames(rabbitQueue.getName());
-    ```
+```java
+SimpleMessageListenerContainer listenerContainer = new SimpleMessageListenerContainer();
+listenerContainer.setConnectionFactory(rabbitConnectionFactory);
+listenerContainer.setQueueNames(rabbitQueue.getName());
+```
 
  Next, the listener is defined by implementing the `MessageListener` interface. This is where the actual message processing happens:
 
-    ```java
-     listenerContainer.setMessageListener(new MessageListener() {
-             public void onMessage(Message message) {
-                 // message is converted back into model object
-                 final BigOperation bigOp = (BigOperation) messageConverter.fromMessage(message);
+```java
+listenerContainer.setMessageListener(new MessageListener() {
+    public void onMessage(Message message) {
+        // message is converted back into model object
+        final BigOperation bigOp = (BigOperation) messageConverter.fromMessage(message);
 
-                 // simply printing out the operation, but expensive computation could happen here
-                 System.out.println("Received from RabbitMQ: " + bigOp);
-             }
-         });
-    ```
+        // simply printing out the operation, but expensive computation could happen here
+        System.out.println("Received from RabbitMQ: " + bigOp);
+     }
+    });
+```
 
 The example application also configures an error handler and shutdown hook for completeness.
 
 Finally the listener container is started, which will stay alive until the JVM is shutdown:
 
-    ```java
-    listenerContainer.start();
-    ```
+```java
+listenerContainer.start();
+```

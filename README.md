@@ -57,7 +57,7 @@ public ConnectionFactory connectionFactory() {
 
     return factory;
 }
-     ```
+```
 
 #### Web Process
 The `web` process has this configuration `@autowired` by Spring in `BigOperationWebController`:

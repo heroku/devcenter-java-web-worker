@@ -54,7 +54,6 @@ public class BigOperationWorker {
             }
         });
 
-        // start up the listener. this will block until JVM is killed.
         listenerContainer.start();
         System.out.println("BigOperationWorker started");
     }

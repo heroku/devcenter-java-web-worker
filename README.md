@@ -67,7 +67,7 @@ The `web` process has this configuration `@autowired` by Spring in `BigOperation
 @Autowired private Queue rabbitQueue;
 ```
 
-When web requests are received by the controller, they are coverted to AMPQ messages and sent to RabbitMQ.
+When web requests are received by the controller, they are converted to AMPQ messages and sent to RabbitMQ.
 The `AmqpTemplate` makes this easy with the following one-liner:
 
 ```java
@@ -78,7 +78,7 @@ The `web` process then immediately returns a confirmation page to the user.
 
 #### Worker Process
 
-Because the `worker` process is running in a sepatate dyno and is outside an application context,
+Because the `worker` process is running in a separate dyno and is outside an application context,
 the configuration must be manually wired from `RabbitConfiguration` in `BigOperationWorker`:
 
 ```java

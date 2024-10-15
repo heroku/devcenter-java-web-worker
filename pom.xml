@@ -14,7 +14,7 @@
 
   <properties>
     <spring.framework.version>4.1.4.RELEASE</spring.framework.version>
-    <spring.amqp.version>1.4.3.RELEASE</spring.amqp.version>
+    <spring.amqp.version>2.3.11</spring.amqp.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
